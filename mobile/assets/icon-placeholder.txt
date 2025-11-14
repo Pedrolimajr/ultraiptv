@@ -1,0 +1,10 @@
+# Placeholder para icon.png
+
+Este arquivo é um placeholder. Você precisa criar:
+- icon.png (1024x1024px)
+- adaptive-icon.png (1024x1024px)  
+- splash.png (2048x2048px)
+- favicon.png (48x48px)
+
+Por enquanto, o app funcionará sem eles, mas é recomendado adicionar antes de gerar o APK final.
+

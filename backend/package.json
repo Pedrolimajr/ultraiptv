@@ -1,0 +1,43 @@
+{
+  "name": "ultraiptv-backend",
+  "version": "1.0.0",
+  "description": "Backend API para ULTRAIPTV",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "setup:db": "node scripts/setup-db.js",
+    "create:admin": "node scripts/create-admin.js",
+    "reset:admin": "node scripts/reset-admin-password.js",
+    "test:connection": "node -e \"const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); prisma.$connect().then(() => { console.log('✅ Conectado!'); process.exit(0); }).catch(e => { console.error('❌ Erro:', e.message); process.exit(1); })\"",
+    "docker:up": "cd .. && docker-compose up -d",
+    "docker:down": "cd .. && docker-compose down",
+    "docker:check": "docker info > $null 2>&1; if ($LASTEXITCODE -eq 0) { Write-Host '✅ Docker está rodando' } else { Write-Host '❌ Docker não está rodando! Abra o Docker Desktop primeiro.' }"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "@prisma/client": "^5.7.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "prisma": "^5.7.1"
+  },
+  "keywords": [
+    "iptv",
+    "api",
+    "backend"
+  ],
+  "author": "ULTRAIPTV",
+  "license": "MIT"
+}
+

@@ -1,0 +1,36 @@
+{
+  "name": "ultraiptv",
+  "version": "1.0.0",
+  "description": "Aplicativo completo de IPTV - ULTRAIPTV",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "backend",
+    "admin"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd mobile && npm install && cd ../backend && npm install && cd ../admin && npm install",
+    "dev:mobile": "cd mobile && npm start",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:admin": "cd admin && npm run dev",
+    "build:mobile": "cd mobile && eas build -p android --profile apk",
+    "prepare:apk": "powershell -ExecutionPolicy Bypass -File scripts/prepare-apk.ps1",
+    "setup": "npm run install:all",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f postgres",
+    "docker:setup": "powershell -ExecutionPolicy Bypass -File scripts/setup-docker.ps1",
+    "setup:docker": "powershell -ExecutionPolicy Bypass -File scripts/setup-docker.ps1",
+    "docker:start": "powershell -ExecutionPolicy Bypass -File scripts/start-docker.ps1",
+    "start:docker": "powershell -ExecutionPolicy Bypass -File scripts/start-docker.ps1",
+    "docker:check": "powershell -ExecutionPolicy Bypass -File scripts/verificar-docker.ps1",
+    "check:docker": "powershell -ExecutionPolicy Bypass -File scripts/verificar-docker.ps1"
+  },
+  "keywords": [
+    "iptv",
+    "streaming",
+    "android-tv"
+  ],
+  "author": "ULTRAIPTV",
+  "license": "MIT"
+}

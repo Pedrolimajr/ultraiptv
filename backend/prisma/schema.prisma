@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  password      String
+  role          String    @default("USER") // USER, ADMIN
+  active        Boolean   @default(true)
+  expirationDate DateTime?
+  deviceLimit   Int       @default(1)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  loginLogs     LoginLog[]
+  blockedCategories BlockedCategory[]
+}
+
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  ipAddress String?
+  userAgent String?
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BlockedCategory {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  category    String   // LIVE, MOVIES, SERIES, etc.
+  itemId      String?  // ID específico do item bloqueado (opcional)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, itemId])
+}
+
