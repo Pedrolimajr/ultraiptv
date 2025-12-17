@@ -5,22 +5,27 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Alert,
   ActivityIndicator,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../config/api';
+import { BACKEND_URL } from '../config/api';
+import AppLogo from '../src/components/AppLogo';
+import { palette } from '../src/theme/palette';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { height } = Dimensions.get('window');
+  const logoSize = Math.min(300, Math.floor(height * 0.4));
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -31,8 +36,8 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      // Primeiro, tentar login na API externa
-      const externalResponse = await fetch(`${API_URL}/auth/login`, {
+      // Fazer login no backend local
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,15 +45,16 @@ export default function LoginScreen() {
         body: JSON.stringify({ username, password }),
       });
 
-      if (!externalResponse.ok) {
-        throw new Error('Credenciais inválidas');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Credenciais inválidas');
       }
 
-      const externalData = await externalResponse.json();
+      const data = await response.json();
 
       // Verificar se a conta está expirada
-      if (externalData.expired || externalData.expiration_date) {
-        const expirationDate = new Date(externalData.expiration_date);
+      if (data.expired || data.expirationDate) {
+        const expirationDate = new Date(data.expirationDate);
         const now = new Date();
         
         if (expirationDate < now) {
@@ -63,11 +69,12 @@ export default function LoginScreen() {
       }
 
       // Salvar token e dados do usuário
-      await AsyncStorage.setItem('@ultraiptv_token', externalData.token || 'external_token');
+      await AsyncStorage.setItem('@ultraiptv_token', data.token);
       await AsyncStorage.setItem('@ultraiptv_user', JSON.stringify({
-        username: externalData.username || username,
-        expiration_date: externalData.expiration_date,
-        ...externalData
+        username: data.user?.username || username,
+        expirationDate: data.user?.expirationDate,
+        role: data.user?.role,
+        ...data.user
       }));
 
       router.replace('/dashboard');
@@ -84,18 +91,17 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : Platform.OS === 'web' ? undefined : 'height'}
         style={styles.keyboardView}
+        keyboardVerticalOffset={Platform.OS === 'web' ? 0 : undefined}
       >
-        <View style={styles.content}>
-          {/* Logo */}
+        <ScrollView
+          contentContainerStyle={styles.contentContainer}
+          style={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>ULTRAIPTV</Text>
-            <View style={styles.logoCircle}>
-              <View style={styles.playButton}>
-                <View style={styles.playTriangle} />
-              </View>
-            </View>
+            <AppLogo size={logoSize} stacked />
           </View>
 
           {/* Formulário */}
@@ -110,16 +116,18 @@ export default function LoginScreen() {
               autoCorrect={false}
             />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Senha"
-              placeholderTextColor="#666"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Senha"
+                placeholderTextColor="#666"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
 
             <TouchableOpacity
               style={styles.loginButton}
@@ -138,7 +146,7 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -151,54 +159,18 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  contentContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 60,
-  },
-  logoCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#00D9FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-    shadowColor: '#00D9FF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  playButton: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 25,
-    borderTopWidth: 15,
-    borderBottomWidth: 15,
-    borderLeftColor: '#00D9FF',
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    marginLeft: 5,
-  },
-  playTriangle: {
-    width: 0,
-    height: 0,
-  },
-  logoText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 4,
-    textShadowColor: '#00D9FF',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    marginBottom: 40,
   },
   form: {
     width: '100%',
@@ -213,6 +185,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: 'rgba(0, 217, 255, 0.3)',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 217, 255, 0.3)',
+    marginBottom: 20,
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 16,
+    color: '#FFFFFF',
   },
   loginButton: {
     marginTop: 20,
@@ -231,4 +218,3 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
 });
-
