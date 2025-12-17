@@ -14,4 +14,4 @@ RUN npx prisma generate
 
 EXPOSE 3001
 
-CMD ["node", "src/server.js"]
+CMD ["npm", "run", "start:prod"]
