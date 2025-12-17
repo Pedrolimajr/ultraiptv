@@ -1,0 +1,31 @@
+# Example Render manifest for ULTRAIPTV
+# This file is an example. When creating the service on Render, adjust region/plan as needed.
+
+services:
+  - type: web
+    name: ultraiptv-backend
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: JWT_SECRET
+        generate: true
+      - key: EXTERNAL_API_URL
+        value: "http://aguacomgas.shop"
+
+databases:
+  - name: ultraiptv-db
+    plan: starter-pg
+    engine: postgres
+    version: 15
+
+# Notes:
+# - Render will replace placeholders when you connect the repo.
+# - After creating the DB on Render, set DATABASE_URL in the web service to the DB connection string.
+# - Run `npx prisma migrate deploy` on the instance (render supports deploy commands or run manually via SSH).
