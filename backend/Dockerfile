@@ -2,9 +2,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install OpenSSL and other dependencies required by Prisma
-# Alpine Linux já tem OpenSSL, mas precisamos garantir compatibilidade
-RUN apk add --no-cache openssl libc6-compat || apk add --no-cache openssl
+# Alpine Linux já inclui OpenSSL por padrão
+# O Prisma será compilado com binaryTarget linux-musl-openssl-1.1.x configurado no schema.prisma
 
 # Install dependencies (including dev dependencies for Prisma)
 COPY package.json ./
