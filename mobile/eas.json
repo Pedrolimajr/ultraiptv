@@ -9,16 +9,25 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "http://192.168.1.6:3001"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "http://192.168.1.6:3001"
+      },
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     },
     "apk": {
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "http://192.168.1.6:3001"
+      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"

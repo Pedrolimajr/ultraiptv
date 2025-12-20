@@ -1,0 +1,152 @@
+import { ptBR } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
+import { es } from 'date-fns/locale';
+
+type Lang = 'pt-BR' | 'en' | 'es';
+
+export function getDateLocale(lang: Lang) {
+  switch (lang) {
+    case 'en':
+      return enUS;
+    case 'es':
+      return es;
+    case 'pt-BR':
+    default:
+      return ptBR;
+  }
+}
+
+const dict: Record<Lang, Record<string, string>> = {
+  'pt-BR': {
+    'settings.title.hello': 'Olá',
+    'settings.title.personalize': 'Personalize o aplicativo para o seu jeito de assistir.',
+    'settings.section.general': 'Preferências gerais',
+    'settings.section.player': 'Player e mídia',
+    'settings.section.parental': 'Controle dos pais',
+    'settings.section.tools': 'Ferramentas',
+    'settings.general.timeformat': 'Formato da hora',
+    'settings.general.timeformat.desc': 'Alternar entre 24h e 12h',
+    'settings.general.autorefresh': 'Atualizar conteúdo automaticamente',
+    'settings.general.autorefresh.desc': 'Atualiza canais e catálogos ao entrar nas telas',
+    'settings.general.autoclean': 'Limpeza automática do cache',
+    'settings.general.autoclean.desc': 'Remove listas armazenadas a cada 15 minutos',
+    'settings.general.clearcache': 'Limpeza de cache',
+    'settings.general.clearcache.button': 'Limpar agora',
+    'settings.general.language': 'Idioma',
+    'settings.player.external': 'Player externo',
+    'settings.player.external.desc': 'Use aplicativos como VLC ou MX Player',
+    'settings.player.external.internal': 'Player interno',
+    'settings.player.external.vlc': 'Enviar para VLC',
+    'settings.player.streamformat': 'Formato do fluxo',
+    'settings.player.streamformat.desc': 'Escolha entre stream adaptativo ou direto',
+    'settings.stream.adaptive': 'ADAPTATIVO',
+    'settings.stream.direct': 'DIRETO',
+    'settings.parental.protection': 'Proteção de conteúdo sensível',
+    'settings.parental.enabled': 'Conteúdo adulto oculto',
+    'settings.parental.disabled': 'Proteção desativada',
+    'settings.parental.active': 'ATIVO',
+    'settings.parental.inactive': 'DESATIVADO',
+    'settings.tools.multiscreen': 'Multi-screen',
+    'settings.tools.multiscreen.desc': 'Assista a dois canais ao mesmo tempo',
+    'settings.tools.open': 'Abrir',
+    'settings.tools.speedtest': 'Teste de velocidade',
+    'settings.tools.speedtest.desc': 'Abrir Fast.com para medir sua internet',
+    'settings.tools.test': 'Testar',
+    'settings.tools.epg': 'Guia de programação (EPG)',
+    'settings.tools.epg.desc': 'Veja o que está ao vivo em cada canal',
+    'settings.tools.seeGuide': 'Ver guia',
+    'settings.tools.vpn': 'VPN de confiança',
+    'settings.tools.vpn.desc': 'Abra recomendações de apps VPN',
+    'settings.tools.recommendations': 'Recomendações',
+  },
+  en: {
+    'settings.title.hello': 'Hello',
+    'settings.title.personalize': 'Customize the app to your way of watching.',
+    'settings.section.general': 'General preferences',
+    'settings.section.player': 'Player and media',
+    'settings.section.parental': 'Parental control',
+    'settings.section.tools': 'Tools',
+    'settings.general.timeformat': 'Time format',
+    'settings.general.timeformat.desc': 'Toggle between 24h and 12h',
+    'settings.general.autorefresh': 'Auto refresh content',
+    'settings.general.autorefresh.desc': 'Refresh lists when entering screens',
+    'settings.general.autoclean': 'Auto cache cleaning',
+    'settings.general.autoclean.desc': 'Remove stored lists every 15 minutes',
+    'settings.general.clearcache': 'Cache cleaning',
+    'settings.general.clearcache.button': 'Clear now',
+    'settings.general.language': 'Language',
+    'settings.player.external': 'External player',
+    'settings.player.external.desc': 'Use apps like VLC or MX Player',
+    'settings.player.external.internal': 'Internal player',
+    'settings.player.external.vlc': 'Send to VLC',
+    'settings.player.streamformat': 'Stream format',
+    'settings.player.streamformat.desc': 'Choose adaptive or direct stream',
+    'settings.stream.adaptive': 'ADAPTIVE',
+    'settings.stream.direct': 'DIRECT',
+    'settings.parental.protection': 'Sensitive content protection',
+    'settings.parental.enabled': 'Adult content hidden',
+    'settings.parental.disabled': 'Protection disabled',
+    'settings.parental.active': 'ACTIVE',
+    'settings.parental.inactive': 'DISABLED',
+    'settings.tools.multiscreen': 'Multi-screen',
+    'settings.tools.multiscreen.desc': 'Watch two channels at the same time',
+    'settings.tools.open': 'Open',
+    'settings.tools.speedtest': 'Speed test',
+    'settings.tools.speedtest.desc': 'Open Fast.com to measure your internet',
+    'settings.tools.test': 'Test',
+    'settings.tools.epg': 'Program guide (EPG)',
+    'settings.tools.epg.desc': 'See what is live on each channel',
+    'settings.tools.seeGuide': 'See guide',
+    'settings.tools.vpn': 'Trusted VPN',
+    'settings.tools.vpn.desc': 'Open VPN app recommendations',
+    'settings.tools.recommendations': 'Recommendations',
+  },
+  es: {
+    'settings.title.hello': 'Hola',
+    'settings.title.personalize': 'Personaliza la aplicación a tu forma de ver.',
+    'settings.section.general': 'Preferencias generales',
+    'settings.section.player': 'Reproductor y medios',
+    'settings.section.parental': 'Control parental',
+    'settings.section.tools': 'Herramientas',
+    'settings.general.timeformat': 'Formato de hora',
+    'settings.general.timeformat.desc': 'Alternar entre 24h y 12h',
+    'settings.general.autorefresh': 'Actualizar contenido automáticamente',
+    'settings.general.autorefresh.desc': 'Actualizar listas al entrar en pantallas',
+    'settings.general.autoclean': 'Limpieza automática de caché',
+    'settings.general.autoclean.desc': 'Eliminar listas cada 15 minutos',
+    'settings.general.clearcache': 'Limpieza de caché',
+    'settings.general.clearcache.button': 'Limpiar ahora',
+    'settings.general.language': 'Idioma',
+    'settings.player.external': 'Reproductor externo',
+    'settings.player.external.desc': 'Usar apps como VLC o MX Player',
+    'settings.player.external.internal': 'Reproductor interno',
+    'settings.player.external.vlc': 'Enviar a VLC',
+    'settings.player.streamformat': 'Formato de transmisión',
+    'settings.player.streamformat.desc': 'Elija transmisión adaptativa o directa',
+    'settings.stream.adaptive': 'ADAPTATIVO',
+    'settings.stream.direct': 'DIRECTO',
+    'settings.parental.protection': 'Protección de contenido sensible',
+    'settings.parental.enabled': 'Contenido adulto oculto',
+    'settings.parental.disabled': 'Protección desactivada',
+    'settings.parental.active': 'ACTIVO',
+    'settings.parental.inactive': 'DESACTIVADO',
+    'settings.tools.multiscreen': 'Pantalla múltiple',
+    'settings.tools.multiscreen.desc': 'Ver dos canales al mismo tiempo',
+    'settings.tools.open': 'Abrir',
+    'settings.tools.speedtest': 'Prueba de velocidad',
+    'settings.tools.speedtest.desc': 'Abrir Fast.com para medir tu internet',
+    'settings.tools.test': 'Probar',
+    'settings.tools.epg': 'Guía de programación (EPG)',
+    'settings.tools.epg.desc': 'Ver qué está en vivo en cada canal',
+    'settings.tools.seeGuide': 'Ver guía',
+    'settings.tools.vpn': 'VPN confiable',
+    'settings.tools.vpn.desc': 'Abrir recomendaciones de apps VPN',
+    'settings.tools.recommendations': 'Recomendaciones',
+  },
+};
+
+export function t(key: string, lang: Lang) {
+  const table = dict[lang] || dict['pt-BR'];
+  return table[key] || key;
+}
+

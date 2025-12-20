@@ -52,17 +52,37 @@ Antes de gerar o APK, é recomendado adicionar os assets:
 
 **Nota**: O app funciona sem eles, mas é melhor adicionar antes do build final.
 
-### 4️⃣ Gerar APK
+### 4️⃣ Gerar APK / AAB (EAS)
+
+Opções recomendadas:
+- Para **teste rápido** (APK):
 
 ```powershell
 cd mobile
-eas build -p android --profile apk
+# substitua pelo IP da sua máquina onde o backend roda: http://192.168.0.123:3001
+# 1) usando a variável de ambiente diretamente no comando
+eas build -p android --profile preview --env EXPO_PUBLIC_BACKEND_URL="http://192.168.0.123:3001"
+# ou 2) atualizando `mobile/eas.json` no campo `preview.env.EXPO_PUBLIC_BACKEND_URL`
+
+# também existe um script npm conveniente
+npm run eas:build:preview
+```
+
+- Para **produção / publicação Play Store** (AAB recomendado):
+
+```powershell
+cd mobile
+# alterar profile `production` para gerar AAB (já configurado em eas.json)
+# (substitua o BACKEND pela URL pública ou IP acessível pela rede)
+eas build -p android --profile production --env EXPO_PUBLIC_BACKEND_URL="http://seu-backend-publico:3001"
+# ou via npm script
+npm run eas:build:production
 ```
 
 **Opções de build:**
-- `--profile apk` - APK para instalação direta (recomendado)
-- `--profile preview` - APK de preview
-- `--profile production` - APK de produção
+- `--profile apk` - APK para instalação direta (perfil `apk` está disponível)
+- `--profile preview` - APK de preview (interno, rápido)
+- `--profile production` - AAB (app bundle) configurado para produção (recomendado para Play Store)
 
 ### 5️⃣ Aguardar Build
 
@@ -93,10 +113,24 @@ eas build -p android --profile apk --local
 - Java JDK
 - Variáveis de ambiente configuradas
 
-## 🎯 Instalar na TV
+## 🎯 Instalar na TV / Dispositivo
+
+### Credenciais e Assinatura (keystore)
+- O EAS pode **gerenciar automaticamente** a assinatura do aplicativo (recomendado para simplicidade). Durante o primeiro build, escolha a opção `Let EAS manage credentials` quando solicitada.
+- Se preferir usar seu próprio keystore, gere com o `keytool` (ou siga as instruções do Play Console) e faça upload via:
+
+```powershell
+# listar perfis de credenciais
+eas credentials -p android
+
+# ou usar a interface de upload interativa durante eas build
+```
+
+> Dica: use `eas credentials` para exportar/baixar e manter backups do keystore.
+
+---
 
 ### Método 1: Via Pendrive/USB
-
 1. Copie o APK para um pendrive
 2. Conecte na TV
 3. Na TV: Configurações > Segurança > Permitir fontes desconhecidas
@@ -104,21 +138,43 @@ eas build -p android --profile apk --local
 5. Navegue até o pendrive
 6. Clique no APK para instalar
 
-### Método 2: Via ADB
+### Método 2: Via ADB (recomendado para testes)
+1. Habilite **ADB Debugging** nas configurações de desenvolvedor da TV (ou celular).
+2. Conecte via rede (TV e sua máquina na mesma rede):
 
 ```powershell
-# Conectar TV
-adb connect IP_DA_TV:5555
+# conectar via rede (exemplo)
+adb connect 192.168.0.55:5555
 
-# Instalar APK
-adb install ultraiptv.apk
+# instalar APK (substitua pelo caminho do arquivo baixado)
+adb install -r .\ultraiptv.apk
+```
+
+3. Para listar logs de dispositivo (útil para debug):
+
+```powershell
+adb logcat | Select-String "ULTRAIPTV" -Context 1,1
 ```
 
 ### Método 3: Via Downloader (FireStick)
-
 1. Instale o app "Downloader" na FireStick
-2. Baixe o APK em um serviço de hospedagem
+2. Faça o upload do APK para um link público (ex: Google Drive, S3, ou um servidor simples)
 3. Use o Downloader para baixar e instalar
+
+---
+
+### Expor backend local (quando estiver em Docker local)
+- Se seu backend estiver rodando apenas localmente, use uma das opções abaixo para que o app no dispositivo consiga acessá-lo:
+  - Usar IP da sua máquina na rede local (ex: `http://192.168.0.123:3001`) e passar para `EXPO_PUBLIC_BACKEND_URL` no build (ver seção acima).
+  - Usar ngrok (ou similar) para criar uma URL pública temporária:
+
+```powershell
+# exemplo (instale ngrok antes)
+ngrok http 3001
+# use a URL retornada pelo ngrok como EXPO_PUBLIC_BACKEND_URL
+```
+
+> Observação: verifique se o endpoint resolvido aparece saudável em `http://<URL>:3001/` antes de rodar o build.
 
 ## 🔧 Configurações Importantes
 

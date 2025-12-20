@@ -1,0 +1,45 @@
+===========================================
+  COMO ADICIONAR SUA LOGO ULTRAPLAYER
+===========================================
+
+PASSO 1: Adicione sua logo
+---------------------------
+Coloque sua logo ULTRAPLAYER nesta pasta (mobile/assets/) 
+com o nome: logo.png
+
+Tamanho recomendado: 1024x1024px ou maior
+Formato: PNG (com fundo transparente se possível)
+
+
+PASSO 2: O código já está pronto!
+----------------------------------
+O código já está configurado para usar sua logo automaticamente
+quando você adicionar o arquivo logo.png nesta pasta.
+
+Não precisa editar nenhum código!
+
+
+PASSO 3: Recarregue o app
+--------------------------
+Depois de adicionar logo.png:
+- Salve o arquivo
+- Recarregue o app (pressione 'r' no terminal ou F5 no navegador)
+
+
+RESULTADO:
+----------
+Sua logo ULTRAPLAYER aparecerá na tela de login em vez do 
+logo renderizado (texto + círculo).
+
+
+NOTA:
+-----
+Se você quiser usar a logo também como ícone do app, adicione também:
+- icon.png (1024x1024px)
+- adaptive-icon.png (1024x1024px)
+- splash.png (2048x2048px)
+
+E depois descomente as linhas correspondentes no app.json
+
+===========================================
+

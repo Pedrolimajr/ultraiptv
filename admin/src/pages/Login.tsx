@@ -29,6 +29,13 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
       <div className="max-w-md w-full space-y-8">
         <div>
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/assets/logo.png" 
+              alt="ULTRAPLAYER" 
+              className="w-48 h-48 object-contain"
+            />
+          </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             ULTRAIPTV Admin
           </h2>

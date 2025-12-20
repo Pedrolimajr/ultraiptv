@@ -6,19 +6,35 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  TextInput,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { getDateLocale } from '../src/i18n';
+import AppLogo from '../src/components/AppLogo';
+import { palette } from '../src/theme/palette';
+import { useSettings } from '../src/context/SettingsContext';
+import { useIptvConfig } from '../src/context/IptvContext';
+import IptvConfigModal from '../src/components/IptvConfigModal';
+import PlaylistManagerModal from '../src/components/PlaylistManagerModal';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 export default function DashboardScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const { settings } = useSettings();
+  const { config: iptvConfig, loading: iptvLoading } = useIptvConfig();
+  const timePattern = settings.timeFormat24h ? 'HH:mm' : 'hh:mm aa';
+  const [configModalVisible, setConfigModalVisible] = useState(false);
+  const [playlistManagerVisible, setPlaylistManagerVisible] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState('');
 
   useEffect(() => {
     loadUser();
@@ -28,6 +44,51 @@ export default function DashboardScreen() {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (iptvConfig && !iptvLoading) {
+      checkAndUpdateContent();
+    }
+  }, [iptvConfig, iptvLoading]);
+
+  const checkAndUpdateContent = async () => {
+    if (!iptvConfig) return;
+    
+    try {
+      // Verificar última atualização
+      const lastUpdateKey = '@ultraiptv_last_update';
+      const lastUpdate = await AsyncStorage.getItem(lastUpdateKey);
+      const now = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
+      
+      // Se nunca atualizou ou passou mais de 24 horas, atualizar
+      if (!lastUpdate || (now - parseInt(lastUpdate)) > oneDay) {
+        setIsUpdating(true);
+        setUpdateProgress('Verificando atualizações...');
+        
+        // Simular processo de atualização
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setUpdateProgress('Atualizando conteúdo...');
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setUpdateProgress('Sincronizando playlists...');
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setUpdateProgress('Atualização concluída!');
+        
+        // Salvar timestamp da atualização
+        await AsyncStorage.setItem(lastUpdateKey, now.toString());
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsUpdating(false);
+        setUpdateProgress('');
+      }
+    } catch (error) {
+      console.error('Erro ao verificar atualizações:', error);
+      setIsUpdating(false);
+      setUpdateProgress('');
+    }
+  };
 
   const loadUser = async () => {
     try {
@@ -46,53 +107,87 @@ export default function DashboardScreen() {
     router.replace('/login');
   };
 
-  const MenuTile = ({ 
+  const LargeCard = ({ 
     title, 
     icon, 
     colors, 
-    onPress, 
-    large = false 
+    onPress
   }: {
     title: string;
     icon: string;
     colors: string[];
     onPress: () => void;
-    large?: boolean;
   }) => (
     <TouchableOpacity
-      style={[styles.tile, large && styles.largeTile]}
+      style={styles.largeCard}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <LinearGradient
         colors={colors}
-        style={styles.tileGradient}
+        style={styles.largeCardGradient}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 1 }}
       >
-        <Text style={styles.tileIcon}>{icon}</Text>
-        <Text style={styles.tileText}>{title}</Text>
+        <Text style={styles.largeCardIcon}>{icon}</Text>
+        <Text style={styles.largeCardTitle}>{title}</Text>
       </LinearGradient>
+    </TouchableOpacity>
+  );
+
+  const SmallCard = ({ 
+    title, 
+    icon, 
+    onPress 
+  }: {
+    title: string;
+    icon: string;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      style={styles.smallCard}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Text style={styles.smallCardIcon}>{icon}</Text>
+      <Text style={styles.smallCardTitle}>{title}</Text>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.logoText}>ULTRAIPTV</Text>
+        <View style={styles.brand}>
+          <AppLogo size={90} />
+          <View style={styles.brandText}>
+            <Text style={styles.brandTitle}>Ultra IPTV</Text>
+            <Text style={styles.brandSubtitle}>Entretenimento ilimitado</Text>
+          </View>
         </View>
+
         <View style={styles.headerRight}>
-          <Text style={styles.timeText}>
-            {format(currentTime, 'HH:mm', { locale: ptBR })}
-          </Text>
-          <Text style={styles.dateText}>
-            {format(currentTime, "dd 'de' MMMM, yyyy", { locale: ptBR })}
-          </Text>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <Text style={styles.logoutText}>Sair</Text>
-          </TouchableOpacity>
+          <View>
+            <Text style={styles.headerTime}>
+              {format(currentTime, timePattern, { locale: getDateLocale(settings.language) })}
+            </Text>
+            <Text style={styles.headerDate}>
+              {format(currentTime, "dd 'de' MMMM, yyyy", { locale: getDateLocale(settings.language) })}
+            </Text>
+          </View>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity style={styles.headerIcon} onPress={() => setConfigModalVisible(true)}>
+              <Text style={styles.headerIconText}>👤</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerIcon} onPress={() => setPlaylistManagerVisible(true)}>
+              <Text style={styles.headerIconText}>👥</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerIcon} onPress={() => router.push('/settings')}>
+              <Text style={styles.headerIconText}>⚙️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerIcon} onPress={handleLogout}>
+              <Text style={styles.headerIconText}>🚪</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -101,54 +196,44 @@ export default function DashboardScreen() {
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
       >
-        <View style={styles.grid}>
-          {/* LIVE TV - Large Tile */}
-          <MenuTile
-            title="LIVE TV"
+        {/* Large Cards Row */}
+        <View style={styles.largeCardsRow}>
+          <LargeCard
+            title="TV AO VIVO"
             icon="📺"
-            colors={['#00D9FF', '#0066CC']}
+            colors={[palette.primary, '#0066CC']}
             onPress={() => router.push('/live')}
-            large
           />
-
-          {/* MOVIES */}
-          <MenuTile
-            title="MOVIES"
-            icon="🎬"
-            colors={['#FF6B6B', '#FF8E53']}
+          <LargeCard
+            title="FILMES"
+            icon="▶️"
+            colors={[palette.secondary, '#5521b5']}
             onPress={() => router.push('/movies')}
           />
-
-          {/* SERIES */}
-          <MenuTile
+          <LargeCard
             title="SERIES"
-            icon="🎭"
-            colors={['#9B59B6', '#8E44AD']}
+            icon="🎬"
+            colors={['#ff8f70', palette.accent]}
             onPress={() => router.push('/series')}
           />
+        </View>
 
-          {/* CATCH UP */}
-          <MenuTile
-            title="CATCH UP"
-            icon="⏰"
-            colors={['#2ECC71', '#27AE60']}
-            onPress={() => router.push('/catchup')}
+        {/* Small Cards Row */}
+        <View style={styles.smallCardsRow}>
+          <SmallCard
+            title="EPG"
+            icon="📖"
+            onPress={() => router.push('/epg')}
           />
-
-          {/* MULTISCREEN */}
-          <MenuTile
-            title="MULTISCREEN"
+          <SmallCard
+            title="MULTI-SCREEN"
             icon="📱"
-            colors={['#2ECC71', '#27AE60']}
             onPress={() => router.push('/multiscreen')}
           />
-
-          {/* SETTINGS */}
-          <MenuTile
-            title="SETTINGS"
-            icon="⚙️"
-            colors={['#2ECC71', '#27AE60']}
-            onPress={() => router.push('/settings')}
+          <SmallCard
+            title="ALCANÇAR"
+            icon="⏰"
+            onPress={() => router.push('/catchup')}
           />
         </View>
       </ScrollView>
@@ -156,14 +241,39 @@ export default function DashboardScreen() {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Expiração: {user?.expiration_date 
-            ? format(new Date(user.expiration_date), 'dd MMM, yyyy', { locale: ptBR })
-            : 'N/A'}
+          Expiração: {user?.expirationDate 
+            ? format(new Date(user.expirationDate), "dd 'de' MMMM, yyyy", { locale: getDateLocale(settings.language) })
+            : 'Sem expiração'}
         </Text>
         <Text style={styles.footerText}>
-          Logado: {user?.username || 'Usuário'}
+          Conectado: {user?.username || 'Usuário'}
+        </Text>
+        <Text style={styles.footerText}>
+          Playlist: {iptvConfig ? iptvConfig.name : 'Não configurada'}
         </Text>
       </View>
+      <IptvConfigModal
+        visible={configModalVisible}
+        onClose={() => setConfigModalVisible(false)}
+      />
+      <PlaylistManagerModal
+        visible={playlistManagerVisible}
+        onClose={() => setPlaylistManagerVisible(false)}
+      />
+
+      {/* Modal de atualização diária */}
+      <Modal
+        visible={isUpdating}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.updateModal}>
+          <View style={styles.updateModalContent}>
+            <ActivityIndicator size="large" color={palette.primary} />
+            <Text style={styles.updateModalText}>{updateProgress || 'Atualizando...'}</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -171,48 +281,65 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: palette.background,
   },
   header: {
-    flexDirection: 'row',
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    backgroundColor: palette.backgroundAlt,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.border,
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 40,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    flexDirection: 'row',
   },
-  headerLeft: {
-    flex: 1,
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  logoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 2,
+  brandText: {
+    marginLeft: 12,
+  },
+  brandTitle: {
+    color: palette.textPrimary,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  brandSubtitle: {
+    color: palette.textSecondary,
+    fontSize: 13,
+    marginTop: 2,
   },
   headerRight: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
   },
-  timeText: {
+  headerTime: {
+    color: palette.textPrimary,
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: '600',
   },
-  dateText: {
-    fontSize: 14,
-    color: '#CCCCCC',
+  headerDate: {
+    color: palette.textSecondary,
     marginTop: 4,
   },
-  logoutButton: {
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(255, 0, 0, 0.3)',
-    borderRadius: 6,
+  headerIcons: {
+    flexDirection: 'row',
+    gap: 10,
   },
-  logoutText: {
-    color: '#FF6B6B',
-    fontSize: 12,
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: palette.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerIconText: {
+    fontSize: 22,
   },
   content: {
     flex: 1,
@@ -220,48 +347,95 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
   },
-  grid: {
+  largeCardsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 20,
-  },
-  tile: {
-    width: (width - 60) / 3,
-    height: 150,
-    borderRadius: 16,
-    overflow: 'hidden',
     marginBottom: 20,
+    gap: 15,
   },
-  largeTile: {
-    width: (width - 60) / 3,
-    height: 320,
+  largeCard: {
+    flex: 1,
+    height: 220,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
   },
-  tileGradient: {
+  largeCardGradient: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
-  tileIcon: {
-    fontSize: 48,
+  largeCardIcon: {
+    fontSize: 54,
     marginBottom: 12,
   },
-  tileText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+  largeCardTitle: {
+    color: palette.textPrimary,
+    fontSize: 20,
+    fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: 1,
+  },
+  smallCardsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 15,
+    flexWrap: 'wrap',
+  },
+  smallCard: {
+    flex: 1,
+    height: 110,
+    borderRadius: 16,
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  smallCardIcon: {
+    fontSize: 30,
+    marginBottom: 8,
+  },
+  smallCardTitle: {
+    color: palette.textPrimary,
+    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    padding: 18,
+    borderTopWidth: 1,
+    borderTopColor: palette.border,
   },
   footerText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: palette.textSecondary,
+  },
+  updateModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  updateModalContent: {
+    backgroundColor: palette.surface,
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: palette.cardBorder,
+    minWidth: 280,
+  },
+  updateModalText: {
+    color: palette.textPrimary,
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
-

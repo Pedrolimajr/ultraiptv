@@ -63,8 +63,8 @@ router.get('/:id', async (req, res) => {
 // Criar novo usuário
 router.post('/', [
   body('username').notEmpty().withMessage('Usuário é obrigatório'),
-  body('password').optional().isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres'),
-  body('expirationType').isIn(['days', 'date', 'hours']).withMessage('Tipo de expiração inválido'),
+  body('password').notEmpty().withMessage('Senha é obrigatória').isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres'),
+  body('expirationType').optional().isIn(['days', 'date', 'hours', 'none']).withMessage('Tipo de expiração inválido'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -83,20 +83,24 @@ router.post('/', [
       return res.status(400).json({ message: 'Usuário já existe' });
     }
 
-    // Gerar senha automática se não fornecida
-    const generatedPassword = password || Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+    // Senha é obrigatória agora
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Senha é obrigatória e deve ter no mínimo 6 caracteres' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Calcular data de expiração
     let expirationDate = null;
-    if (expirationType === 'days' && expirationValue) {
-      expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + parseInt(expirationValue));
-    } else if (expirationType === 'hours' && expirationValue) {
-      expirationDate = new Date();
-      expirationDate.setHours(expirationDate.getHours() + parseInt(expirationValue));
-    } else if (expirationType === 'date' && expirationValue) {
-      expirationDate = new Date(expirationValue);
+    if (expirationType && expirationType !== 'none') {
+      if (expirationType === 'days' && expirationValue) {
+        expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + parseInt(expirationValue));
+      } else if (expirationType === 'hours' && expirationValue) {
+        expirationDate = new Date();
+        expirationDate.setHours(expirationDate.getHours() + parseInt(expirationValue));
+      } else if (expirationType === 'date' && expirationValue) {
+        expirationDate = new Date(expirationValue);
+      }
     }
 
     const user = await prisma.user.create({
@@ -113,7 +117,6 @@ router.post('/', [
     const { password: _, ...userWithoutPassword } = user;
     res.status(201).json({
       ...userWithoutPassword,
-      generatedPassword: !password ? generatedPassword : undefined,
     });
   } catch (error) {
     console.error('Error creating user:', error);

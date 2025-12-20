@@ -4,10 +4,8 @@
     "slug": "ultraiptv",
     "version": "1.0.0",
     "orientation": "landscape",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -20,42 +18,31 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.ultraiptv.app",
+      "package": "com.filhopedro.ultraiptv",
+      "versionCode": 1,
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",
-        "WAKE_LOCK",
-        "FOREGROUND_SERVICE",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
+        "WAKE_LOCK"
       ],
       "intentFilters": [
         {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "http",
-              "host": "*",
-              "pathPrefix": "*"
-            },
-            {
-              "scheme": "https",
-              "host": "*",
-              "pathPrefix": "*"
-            }
-          ],
+          "action": "android.intent.action.MAIN",
           "category": [
-            "BROWSABLE",
-            "DEFAULT"
+            "android.intent.category.LAUNCHER",
+            "android.intent.category.LEANBACK_LAUNCHER"
           ]
         }
-      ]
+      ],
+      "softwareKeyboardLayoutMode": "pan",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 21
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
@@ -64,16 +51,19 @@
         {
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-font"
     ],
     "scheme": "ultraiptv",
     "extra": {
       "router": {
-        "origin": false
+        "origin": false,
+        "root": "./app"
       },
       "eas": {
         "projectId": "45143524-f7fa-4ea2-9a30-888bf7b47b7d"
       }
-    }
+    },
+    "jsEngine": "hermes"
   }
 }

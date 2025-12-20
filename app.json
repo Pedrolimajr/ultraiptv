@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "45143524-f7fa-4ea2-9a30-888bf7b47b7d"
+      }
+    },
+    "android": {
+      "package": "com.filhopedro.ultraiptv"
+    }
+  }
+}

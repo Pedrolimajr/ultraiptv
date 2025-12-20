@@ -119,3 +119,7 @@ Mantenha **dois terminais abertos**:
 3. Verifique a porta correta (pode ser 5174, 5175, etc.)
 4. Verifique o console do navegador (F12) para ver erros
 
+
+
+
+

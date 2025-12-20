@@ -31,11 +31,30 @@ export default function UserForm() {
     try {
       const response = await api.get(`/api/users/${id}`);
       const user = response.data;
+      
+      // Determinar tipo de expiração baseado na data
+      let expirationType = 'none';
+      let expirationValue = '';
+      
+      if (user.expirationDate) {
+        const expDate = new Date(user.expirationDate);
+        const now = new Date();
+        const diffDays = Math.ceil((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays > 0 && diffDays < 365) {
+          expirationType = 'days';
+          expirationValue = diffDays.toString();
+        } else {
+          expirationType = 'date';
+          expirationValue = expDate.toISOString().split('T')[0];
+        }
+      }
+      
       setFormData({
         username: user.username,
         password: '',
-        expirationType: 'days',
-        expirationValue: '',
+        expirationType: expirationType,
+        expirationValue: expirationValue,
         deviceLimit: user.deviceLimit,
         role: user.role,
         active: user.active,
@@ -51,20 +70,38 @@ export default function UserForm() {
 
     try {
       if (isEdit) {
-        await api.put(`/api/users/${id}`, {
+        const updateData: any = {
           username: formData.username,
-          password: formData.password || undefined,
           expirationDate: calculateExpirationDate(),
           deviceLimit: formData.deviceLimit,
           role: formData.role,
           active: formData.active,
-        });
+        };
+        
+        // Só envia senha se foi preenchida
+        if (formData.password && formData.password.trim().length > 0) {
+          if (formData.password.length < 6) {
+            alert('A senha deve ter no mínimo 6 caracteres');
+            setLoading(false);
+            return;
+          }
+          updateData.password = formData.password;
+        }
+        
+        await api.put(`/api/users/${id}`, updateData);
       } else {
+        // Validar senha obrigatória ao criar
+        if (!formData.password || formData.password.length < 6) {
+          alert('A senha é obrigatória e deve ter no mínimo 6 caracteres');
+          setLoading(false);
+          return;
+        }
+        
         const response = await api.post('/api/users', {
           username: formData.username,
-          password: formData.password || undefined,
-          expirationType: formData.expirationType,
-          expirationValue: formData.expirationValue || undefined,
+          password: formData.password,
+          expirationType: formData.expirationType === 'none' ? undefined : formData.expirationType,
+          expirationValue: formData.expirationType === 'none' ? undefined : (formData.expirationValue || undefined),
           deviceLimit: formData.deviceLimit,
           role: formData.role,
         });
@@ -81,7 +118,7 @@ export default function UserForm() {
   };
 
   const calculateExpirationDate = () => {
-    if (!formData.expirationValue) return null;
+    if (formData.expirationType === 'none' || !formData.expirationValue) return null;
 
     const date = new Date();
     if (formData.expirationType === 'days') {
@@ -100,13 +137,6 @@ export default function UserForm() {
         {isEdit ? 'Editar Usuário' : 'Novo Usuário'}
       </h1>
 
-      {generatedPassword && (
-        <div className="bg-green-900 border border-green-700 text-green-200 px-4 py-3 rounded mb-4">
-          <p className="font-bold">Senha gerada automaticamente:</p>
-          <p className="text-xl font-mono">{generatedPassword}</p>
-          <p className="text-sm mt-2">Salve esta senha! Ela não será exibida novamente.</p>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-6 space-y-4">
         <div>
@@ -124,45 +154,50 @@ export default function UserForm() {
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Senha {!isEdit && '(deixe em branco para gerar automaticamente)'}
+            Senha {!isEdit && '(obrigatória, mínimo 6 caracteres)'}
           </label>
           <input
             type="password"
+            required={!isEdit}
+            minLength={6}
             className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            placeholder={isEdit ? "Deixe em branco para manter a senha atual" : "Digite a senha do cliente"}
           />
         </div>
 
-        {!isEdit && (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Tipo de Expiração
-              </label>
-              <select
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
-                value={formData.expirationType}
-                onChange={(e) => setFormData({ ...formData, expirationType: e.target.value })}
-              >
-                <option value="days">Dias</option>
-                <option value="hours">Horas</option>
-                <option value="date">Data Específica</option>
-              </select>
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Tipo de Expiração
+          </label>
+          <select
+            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+            value={formData.expirationType}
+            onChange={(e) => setFormData({ ...formData, expirationType: e.target.value })}
+          >
+            <option value="days">Dias</option>
+            <option value="hours">Horas</option>
+            <option value="date">Data Específica</option>
+            <option value="none">Sem Expiração</option>
+          </select>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                {formData.expirationType === 'date' ? 'Data de Expiração' : 'Valor'}
-              </label>
-              <input
-                type={formData.expirationType === 'date' ? 'date' : 'number'}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
-                value={formData.expirationValue}
-                onChange={(e) => setFormData({ ...formData, expirationValue: e.target.value })}
-              />
-            </div>
-          </>
+        {formData.expirationType !== 'none' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              {formData.expirationType === 'date' ? 'Data de Expiração' : 'Valor'}
+            </label>
+            <input
+              type={formData.expirationType === 'date' ? 'date' : 'number'}
+              required={formData.expirationType !== 'none'}
+              min={formData.expirationType === 'date' ? undefined : 1}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white"
+              value={formData.expirationValue}
+              onChange={(e) => setFormData({ ...formData, expirationValue: e.target.value })}
+              placeholder={formData.expirationType === 'date' ? 'Selecione a data' : formData.expirationType === 'days' ? 'Ex: 30 (para 30 dias)' : 'Ex: 24 (para 24 horas)'}
+            />
+          </div>
         )}
 
         <div>
