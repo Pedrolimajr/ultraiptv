@@ -1,13 +1,14 @@
-FROM node:18-alpine
+FROM node:18-bullseye-slim
 
 WORKDIR /app
 
-# Alpine Linux já inclui OpenSSL por padrão
-# O Prisma será compilado com binaryTarget linux-musl-openssl-1.1.x configurado no schema.prisma
+# Install OpenSSL (Debian bullseye already provides libssl1.1)
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies (including dev dependencies for Prisma)
 COPY package.json ./
-# npm install works with or without package-lock.json
 RUN npm install
 
 # Copy Prisma schema first
