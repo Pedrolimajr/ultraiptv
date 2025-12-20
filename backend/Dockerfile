@@ -3,7 +3,8 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install OpenSSL and other dependencies required by Prisma
-RUN apk add --no-cache openssl openssl-dev
+# Alpine Linux já tem OpenSSL, mas precisamos garantir compatibilidade
+RUN apk add --no-cache openssl libc6-compat || apk add --no-cache openssl
 
 # Install dependencies (including dev dependencies for Prisma)
 COPY package.json ./
