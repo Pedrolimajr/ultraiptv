@@ -2,6 +2,9 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Install OpenSSL and other dependencies required by Prisma
+RUN apk add --no-cache openssl1.1-compat libc6-compat
+
 # Install dependencies (including dev dependencies for Prisma)
 COPY package.json ./
 # npm install works with or without package-lock.json
