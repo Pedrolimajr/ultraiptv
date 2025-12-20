@@ -4,8 +4,7 @@ WORKDIR /app
 
 # Install dependencies (including dev dependencies for Prisma)
 COPY package.json ./
-# Try to copy package-lock.json if exists, otherwise npm install will work
-COPY package-lock.json* ./
+# npm install works with or without package-lock.json
 RUN npm install
 
 # Copy Prisma schema first
